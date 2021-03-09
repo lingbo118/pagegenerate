@@ -1,6 +1,6 @@
 <template>
   <div class="page_wrapper">
-    <div class="open_components" @mouseover="showComponents=true">组件栏</div>
+    <div class="open_components" @mouseover="showComponents=true" v-if="curTab.value === 'edit'">组件栏</div>
     <div class="board-head">
       <div class="genetate_page" @click="genetatePage">生成页面</div>
       <tabs v-model="curTab" :tabs="tabs"/>
@@ -17,8 +17,8 @@
       <div class="tool_list" id="tool">
         <draggable v-model="list" @end="dragEndOne" class="labels" @start="dragStartOne">
           <transition-group>
-            <div v-for="element in list" :key="element.index" :style="{ color: element.color }" class="label">
-              <i class="iconfont icon-zhuzhuangtutubiao"></i>
+            <div v-for="(element) in list" :key="element.key" :style="{ color: element.color }" class="label">
+              <i :class="['iconfont', element.icon]"></i>
               <span>{{element.label}}</span>
             </div>
           </transition-group>
@@ -36,7 +36,7 @@
           <div v-for="item in list2" :key="item.key" :style="componentStyle(item)" class="component_wrapper" @click="editComponent(item)">
             <div class="wrapper" :style="{ 'border-color': !item.edit ? 'rgba(255, 255, 255, 0)' : '#70c0ff' }">
               <i class="iconfont icon-quxiao icon" v-if="item.edit" @click="removeComponent(item.key)"></i>
-              <component :is="item.componentName" :id="item.index"/>
+              <component :is="item.componentName" :attr="item.property"/>
             </div>
           </div>
         </transition-group>
@@ -44,14 +44,16 @@
 
       <div class="previewArea" v-else>
         <div v-for="item in list2" :key="item.key" :style="componentStyle(item)" class="component_wrapper">
-          <component :is="item.componentName" :id="item.index"/>
+          <component :is="item.componentName" :id="item.index" :attr="item.property"/>
         </div>
       </div>
 
-      <ToolDrawer v-model="showTool"/>
+      <ToolDrawer v-model="showTool">
+        <component :is="currentComponent.attrComponentName"  v-if="currentComponent" :propertiesConfig="currentComponent.property" @propertiesChnaged="propertiesChnaged" slot="attrSetting"/>
+      </ToolDrawer>
     </div>
 
-    <div class="open_tool" @click="showTool=true" :style="{'z-index': showTool ? 2000 : 3000}">
+    <div class="open_tool" @mouseover="showTool=true" :style="{'z-index': showTool ? 2000 : 3000}" v-if="curTab.value === 'edit'">
       <i class="iconfont icon-zhankai"></i>
     </div>
   </div>
@@ -60,7 +62,7 @@
 <script>
 import draggable from "vuedraggable"
 import tabs from './components/tabs'
-import config from '@/components/list/config'
+import config from './config'
 import ToolDrawer from './components/toolDrawer'
 
 export default {
@@ -85,7 +87,8 @@ export default {
         top: 0
       },
       showComponents: true,
-      showTool: false
+      showTool: false,
+      currentComponent: null
     }
   },
   computed: {
@@ -207,6 +210,10 @@ export default {
       })
 
       item.edit = true
+      this.currentComponent = item
+    },
+    propertiesChnaged () {
+      
     }
   }
 }
@@ -246,7 +253,7 @@ export default {
 
   .components_drawer {
     top: 50px;
-    width: 200px !important;
+    width: 220px !important;
 
     .el-drawer__header {
       font-weight: 600;
@@ -298,6 +305,10 @@ export default {
             margin-top: 10px;
             width: auto !important;
           }
+        }
+        
+        .label:nth-child(odd) {
+          margin-right: 10px;
         }
       }
     }

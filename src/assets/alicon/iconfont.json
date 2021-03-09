@@ -153,6 +153,13 @@
       "unicode_decimal": 59286
     },
     {
+      "icon_id": "17179963",
+      "name": "表格",
+      "font_class": "biaoge",
+      "unicode": "e63b",
+      "unicode_decimal": 58939
+    },
+    {
       "icon_id": "19515734",
       "name": "取   消",
       "font_class": "quxiao",

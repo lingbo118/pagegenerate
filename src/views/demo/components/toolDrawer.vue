@@ -6,7 +6,7 @@
       :visible.sync="value"
       :modal="false"
       :destroy-on-close="true"
-      :wrapperClosable="false">
+      :wrapperClosable="true">
       <div class="tool_drawer_body">
         <div class="tool-list">
           <el-tooltip effect="dark" content="复制元素">
@@ -15,12 +15,12 @@
         </div>
         <el-tabs v-model="curTab" @tab-click="handleClick">
           <el-tab-pane label="属性" name="attr">
-            <el-collapse v-model="activeNames" @change="handleChange">
+            <el-collapse v-model="activeNames">
               <el-collapse-item title="通用样式" name="1">
                 通用样式
               </el-collapse-item>
               <el-collapse-item title="属性设置" name="2">
-                属性设置
+                <slot name="attrSetting"></slot>
               </el-collapse-item>
             </el-collapse>
           </el-tab-pane>
@@ -44,7 +44,7 @@ export default {
     return {
       curTab: 'attr',
       showTool: false,
-      activeNames: '2'
+      activeNames: ''
     }
   },
   watch: {
@@ -71,7 +71,7 @@ export default {
   top: 50px !important;
   right: 0px;
   height: calc(100% - 50px) !important;
-  width: 25% !important;
+  width: 30% !important;
 
   .el-drawer__header {
     padding: 10px 10px;
@@ -109,6 +109,10 @@ export default {
     .el-tabs__nav {
       margin-left: 10px;
     }
+  }
+
+  .el-collapse-item {
+    padding-left: 10px;
   }
 }
 </style>

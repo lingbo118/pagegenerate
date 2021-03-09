@@ -1,8 +1,7 @@
-import testComponent1 from "./testComponent1"
-import pgTable from "./pg-table"
+import pgTableAttr from "./pg-table-attr"
 
 const components = [
-  testComponent1, pgTable
+  pgTableAttr
 ]
 
 const install = (Vue = {}) => {
