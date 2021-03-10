@@ -16,9 +16,9 @@
         <el-tabs v-model="curTab" @tab-click="handleClick">
           <el-tab-pane label="属性" name="attr">
             <el-collapse v-model="activeNames">
-              <el-collapse-item title="通用样式" name="1">
-                通用样式
-              </el-collapse-item>
+              <!-- <el-collapse-item title="通用样式" name="1">
+                <slot name="styleSetting"></slot>
+              </el-collapse-item> -->
               <el-collapse-item title="属性设置" name="2">
                 <slot name="attrSetting"></slot>
               </el-collapse-item>
@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 export default {
   props: {
     value: {
@@ -49,7 +50,7 @@ export default {
   },
   watch: {
     value (val) {
-      this.showTool = this.value
+      this.showTool = val
     },
     showTool (val) {
       this.$emit('input', val)
@@ -60,7 +61,7 @@ export default {
       
     },
     handleCopy () {
-
+      this.$store.dispatch('setIsCopy', true)
     }
   }
 }
@@ -71,7 +72,7 @@ export default {
   top: 50px !important;
   right: 0px;
   height: calc(100% - 50px) !important;
-  width: 30% !important;
+  width: 400px !important;
 
   .el-drawer__header {
     padding: 10px 10px;

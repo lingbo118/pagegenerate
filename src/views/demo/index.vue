@@ -49,7 +49,12 @@
       </div>
 
       <ToolDrawer v-model="showTool">
-        <component :is="currentComponent.attrComponentName"  v-if="currentComponent" :propertiesConfig="currentComponent.property" @propertiesChnaged="propertiesChnaged" slot="attrSetting"/>
+        <component
+          slot="attrSetting"
+         :is="currentComponent.attrComponentName"
+         v-if="currentComponent"
+         :property="currentComponent.property"
+         @propertiesChnaged="propertiesChnaged"/>
       </ToolDrawer>
     </div>
 
@@ -64,6 +69,7 @@ import draggable from "vuedraggable"
 import tabs from './components/tabs'
 import config from './config'
 import ToolDrawer from './components/toolDrawer'
+import { mapState } from "vuex";
 
 export default {
   components: {
@@ -92,6 +98,9 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      isCopy: state => state.isCopy
+    }),
     componentStyle () {
       return (item) => {
         let style = `left: ${item.left}px; top: ${item.top}px;`
@@ -122,6 +131,20 @@ export default {
     showTool (val) {
       if (val) {
         this.showComponents = false
+      }
+    },
+    isCopy (val) {
+      if (val) {
+        this.$store.dispatch('setIsCopy', false)
+        let target = this.list2.filter(item => item.edit)
+        this.$set(target[0], 'edit', false)
+        if (target.length > 0) {
+          let item = JSON.parse(JSON.stringify(target[0]))
+          this.$set(item, 'left', item.left + 50)
+          this.$set(item, 'top', item.top + 50)
+          this.$set(item, 'edit', true)
+          this.list2.push(item)
+        }
       }
     }
   },
@@ -212,8 +235,9 @@ export default {
       item.edit = true
       this.currentComponent = item
     },
-    propertiesChnaged () {
-      
+    propertiesChnaged (property) {
+      console.log('-------------->', property)
+      this.$set(this.currentComponent, 'property', JSON.parse(JSON.stringify(property)))
     }
   }
 }

@@ -35,7 +35,7 @@ export default {
       defaultDatas: [
         { column1: '数据11', column2: '数据12', column3: '数据13' },
         { column1: '数据21', column2: '数据22', column3: '数据23' },
-        { column1: '数据31', column2: '数据32', column3: '数据33' }
+        { column1: '数据31', column2: '数据32', column3: '数据33' },
       ]
     }
   },
@@ -86,7 +86,43 @@ export default {
 </script>
 
 <style lang="less">
-.el-table {
-  // width: 300px;
+.pg-table {
+  .el-table {
+    // min-width: 300px;
+    width: 700px;
+    height: 400px;
+  }
+  .el-table__body-wrapper {
+    height: calc(100% - 48px);
+    overflow-y: scroll;
+  }
+  .el-table__header-wrapper {
+    width: 100%;
+
+    .gutter {
+      width: 10px;
+    }
+  }
+  .el-table__body-wrapper::-webkit-scrollbar {
+    /*滚动条整体样式*/ /*高宽分别对应横竖滚动条的尺寸*/
+    width: 10px;
+    height: 10px;
+  }
+  .el-table__body-wrapper::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 10px;
+    background: #f0f2f5;
+    box-shadow: inset 0px 0px 0px 3px #f0f2f5;
+  }
+  .el-table__fixed-right-patch {
+    background: #171c31;
+  }
+  .el-table__fixed-right::before,
+  .el-table__fixed::before {
+    height: 0;
+  }
+  .el-table__body-wrapper::-webkit-scrollbar-corner {
+    background: #fff;
+  }
 }
 </style>

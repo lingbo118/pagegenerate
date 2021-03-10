@@ -1,6 +1,6 @@
 <template>
   <div class="pg-table-attr">
-    <el-table :data="properties.headers" class="table" border>
+    <el-table :data="property.headers" class="table" border>
       <el-table-column label="列名" prop="columnName" min-width="100">
         <template slot-scope="scoped">
           <el-input v-model="scoped.row.columnName"></el-input>
@@ -23,6 +23,14 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-form>
+      <el-form-item label="接口url: " label-width="60px">
+        <el-input v-model="property.api"></el-input>
+      </el-form-item>
+      <el-form-item label="分页: " label-width="60px">
+        <el-switch v-model="property.pagination" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
@@ -30,7 +38,7 @@
 export default {
   name: 'pgTableAttr',
   props: {
-    propertiesConfig: {
+    property: {
       type: Object,
       default: () => {
         return {}
@@ -38,40 +46,21 @@ export default {
     }
   },
   data () {
-    return {
-      properties: {
-        headers: []
-      }
-    }
+    return {}
   },
   computed: {
     
   },
-  watch: {
-    propertiesConfig: {
-      deep: true,
-      immediate: true,
-      handler (val) {
-        this.properties = JSON.parse(JSON.stringify(val))
-      }
-    },
-    properties: {
-      deep: true,
-      handler (val) {
-        this.$emit('propertiesChnaged', val)
-      }
-    }
-  },
   methods: {
     addColumn (index) {
-      this.properties.headers.splice(index, 0, {
+      this.property.headers.splice(index, 0, {
         columnName: '列',
         props: 'column',
         width: 100
       })
     },
     deleteColumn (index) {
-      this.properties.headers.splice(index, 1)
+      this.property.headers.splice(index, 1)
     }
   }
 }
@@ -93,6 +82,21 @@ export default {
   .delete {
     font-size: 16px;
     margin-left: 10px;
+  }
+
+  .el-form {
+    margin-top: 20px;
+    .el-form-item {
+      display: flex;
+
+      .el-form-item__label {
+        padding: 0;
+      }
+
+      .el-form-item__content {
+        margin-left: 20px !important;
+      }
+    }
   }
 }
 </style>

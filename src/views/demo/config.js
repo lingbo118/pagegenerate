@@ -20,7 +20,9 @@ export default {
           { columnName: '列1', prop: 'column1', width: 100 },
           { columnName: '列2', prop: 'column2', width: 100 },
           { columnName: '列3', prop: 'column3', width: 100 }
-        ]
+        ],
+        api: '',
+        pagination: false
       }
     }
   ]
