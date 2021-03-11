@@ -1,7 +1,9 @@
 import pgTableAttr from "./pg-table-attr"
+import pgButtonAttr from "./pg-button-attr"
 
 const components = [
-  pgTableAttr
+  pgTableAttr,
+  pgButtonAttr
 ]
 
 const install = (Vue = {}) => {

@@ -3,7 +3,7 @@
     <el-drawer
       title="工具栏"
       custom-class="tool_drawer"
-      :visible.sync="value"
+      :visible.sync="showTool"
       :modal="false"
       :destroy-on-close="true"
       :wrapperClosable="true">
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
 export default {
   props: {
     value: {
@@ -114,6 +113,10 @@ export default {
 
   .el-collapse-item {
     padding-left: 10px;
+
+    .el-collapse-item__wrap {
+      // background-color: #f0f2f5;
+    }
   }
 }
 </style>

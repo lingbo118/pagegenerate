@@ -1,6 +1,6 @@
 <template>
   <div class="pg-table">
-    <el-table :data="tableData" :style="tableStyle" border>
+    <el-table :data="tableData" :style="tableStyle" border :stripe="stripe">
       <el-table-column
        v-for="(column, index) in tableHeader"
        :key="index"
@@ -10,6 +10,17 @@
        :resizable="false">
       </el-table-column>
     </el-table>
+
+    <el-pagination background
+      v-if="pagination"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :total="totalPage"
+      :small="true"
+      layout="total, prev, pager, next, jumper"
+      style="margin-top: 10px"/>
   </div>
 </template>
 
@@ -17,9 +28,9 @@
 export default {
   name: 'pgTable',
   props: {
-    attr: {
+    property: {
       type: Object,
-      Boolean: {}
+      default: () => {}
     }
   },
   data () {
@@ -27,6 +38,7 @@ export default {
       dataList: [],
       headers: [],
       width: 300,
+      height: 300,
       defaultHeaders: [
         { label: '列1', props: 'column1' },
         { label: '列2', props: 'column2' },
@@ -36,12 +48,26 @@ export default {
         { column1: '数据11', column2: '数据12', column3: '数据13' },
         { column1: '数据21', column2: '数据22', column3: '数据23' },
         { column1: '数据31', column2: '数据32', column3: '数据33' },
-      ]
+      ],
+      totalPage: 0,
+      pageSize: 10,
+      currentPage: 0,
+      api: '',
+      pagination: '',
+      stripe: false
     }
   },
   computed: {
     tableStyle () {
-      return ''
+      let style = ''
+      if (this.width) {
+        style += `width: ${this.width}px;`
+      }
+
+      if (this.height) {
+        style += `height: ${this.height}px;`
+      }
+      return style
     },
     tableHeader () {
       let headers = []
@@ -65,7 +91,7 @@ export default {
     }
   },
   watch: {
-    attr: {
+    property: {
       deep: true,
       immediate: true,
       handler (val) {
@@ -77,9 +103,19 @@ export default {
   },
   methods: {
     parseAttr (obj) {
-      let attr = JSON.parse(JSON.stringify(obj))
-      this.headers = attr.headers
-      // this.width = attr.width
+      let property = JSON.parse(JSON.stringify(obj))
+      this.headers = property.headers
+      this.api = property.api
+      this.pagination = property.pagination
+      this.stripe = property.stripe
+      this.width = property.tableWidth
+      this.height = property.tableHeight
+    },
+    handleCurrentChange (currentPage) {
+      this.currentPage = currentPage
+    },
+    handleSizeChange () {
+
     }
   }
 }
@@ -88,9 +124,8 @@ export default {
 <style lang="less">
 .pg-table {
   .el-table {
-    // min-width: 300px;
-    width: 700px;
-    height: 400px;
+    width: 300px;
+    height: 300px;
   }
   .el-table__body-wrapper {
     height: calc(100% - 48px);
@@ -100,7 +135,8 @@ export default {
     width: 100%;
 
     .gutter {
-      width: 10px;
+      width: 10px !important;
+      display: block !important;
     }
   }
   .el-table__body-wrapper::-webkit-scrollbar {

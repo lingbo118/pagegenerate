@@ -7,11 +7,13 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './assets/alicon/iconfont.css'
 import componentList from './components/list'
 import componentAttrs from './components/attrs'
+import vcolorpicker from 'vcolorpicker'
 
 Vue.config.productionTip = false
 Vue.use(componentList)
 Vue.use(componentAttrs)
 Vue.use(elementui)
+Vue.use(vcolorpicker)
 
 new Vue({
   router,

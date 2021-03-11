@@ -26,27 +26,39 @@
       </div>
     </el-drawer>
     <div class="board-body">
-      <draggable
+      <!-- <draggable
         class="dragArea"
         v-model="list2"
+        :sort="false"
         @end="dragEndTwo"
         @start="dragStartTwo"
+        :disabled="disabled"
         v-if="curTab.value === 'edit'">
-        <transition-group>
-          <div v-for="item in list2" :key="item.key" :style="componentStyle(item)" class="component_wrapper" @click="editComponent(item)">
+        <transition-group> -->
+          <div v-for="item in list2" v-drag="item" :key="item.key" :style="componentStyle(item)" class="component_wrapper_drag" @click="editComponent(item)">
             <div class="wrapper" :style="{ 'border-color': !item.edit ? 'rgba(255, 255, 255, 0)' : '#70c0ff' }">
               <i class="iconfont icon-quxiao icon" v-if="item.edit" @click="removeComponent(item.key)"></i>
-              <component :is="item.componentName" :attr="item.property"/>
+              <div v-show="item.edit">
+                <div class="radius radius-top"></div>
+                <div class="radius radius-right"></div>
+                <div class="radius radius-bottom"></div>
+                <div class="radius radius-left"></div>
+                <div class="radius radius-top-left"></div>
+                <div class="radius radius-top-right"></div>
+                <div class="radius radius-bottom-left"></div>
+                <div class="radius radius-bottom-right"></div>
+              </div>
+              <component :is="item.componentName" :property="item.property"/>
             </div>
           </div>
-        </transition-group>
-      </draggable>
+        <!-- </transition-group>
+      </draggable> -->
 
-      <div class="previewArea" v-else>
+      <!-- <div class="previewArea" v-else>
         <div v-for="item in list2" :key="item.key" :style="componentStyle(item)" class="component_wrapper">
-          <component :is="item.componentName" :id="item.index" :attr="item.property"/>
+          <component :is="item.componentName" :id="item.index" :property="item.property"/>
         </div>
-      </div>
+      </div> -->
 
       <ToolDrawer v-model="showTool">
         <component
@@ -77,6 +89,36 @@ export default {
     tabs,
     ToolDrawer
   },
+  directives: {
+    drag: {
+      bind: function(el) {
+        let oDiv = el
+        oDiv.onmousedown = (e) => {
+          // 算出鼠标相对元素的位置
+          let disX = e.clientX - oDiv.offsetLeft
+          let disY = e.clientY - oDiv.offsetTop
+
+          document.onmousemove = (e) => {
+            // 用鼠标的位置减去鼠标相对元素的位置，得到元素的位置
+            let left = e.clientX - disX
+            let top = e.clientY - disY
+
+            oDiv.style.left = left + 'px'
+            oDiv.style.top = top + 'px'
+          }
+
+          document.onmouseup = (e) => {
+            document.onmousemove = null
+            document.onmouseup = null
+          }
+        }
+      },
+      update: (el, binding) => {
+        console.log(el.style.left)
+        console.log(binding.value)
+      }
+    }
+  },
   data () {
     return {
       list: config.list,
@@ -94,7 +136,8 @@ export default {
       },
       showComponents: true,
       showTool: false,
-      currentComponent: null
+      currentComponent: null,
+      disabled: false
     }
   },
   computed: {
@@ -143,6 +186,7 @@ export default {
           this.$set(item, 'left', item.left + 50)
           this.$set(item, 'top', item.top + 50)
           this.$set(item, 'edit', true)
+          this.$set(item, 'key', Math.random())
           this.list2.push(item)
         }
       }
@@ -224,6 +268,7 @@ export default {
       return result
     },
     editComponent (item) {
+      let edit = item.edit
       if (this.curTab.value === 'preview') {
         return
       }
@@ -232,11 +277,32 @@ export default {
         elem.edit = false
       })
 
-      item.edit = true
+      item.edit = !edit
       this.currentComponent = item
+
+      if (!edit) {
+        let elems = document.getElementsByClassName('radius')
+        for (let elem of elems) {
+          let move = false
+          let x, y
+          elem.onmousedown = (e) => {
+            e.stopPropagation()
+            move = true
+          }
+
+          elem.onmouseup = (e) => {
+            if (move) {
+               e.stopPropagation()
+            }
+          }
+
+          elem.onmousemove = (e) => {
+            move = false
+          }
+        }
+      }
     },
     propertiesChnaged (property) {
-      console.log('-------------->', property)
       this.$set(this.currentComponent, 'property', JSON.parse(JSON.stringify(property)))
     }
   }
@@ -362,6 +428,7 @@ export default {
   }
 
   .board-body {
+    position: relative;
     height: calc(100% - 50px);
     width: 100%;
     background-color: rgb(240, 242, 245);
@@ -371,24 +438,88 @@ export default {
       height: 100%;
       position: relative;
 
-      .component_wrapper {
-        position: absolute;
-        z-index: 100;
+      >span:nth-child(1) {
+        width: 100%;
+        height: 100%;
+        display: flex;
+      }
+    }
 
-        .wrapper {
-          position: relative;
-          border-style: dashed;
-          border-width: 1px;
-          background: rgba(255, 255, 255, 0);
+    .component_wrapper_drag {
+      position: absolute;
+      z-index: 100;
 
-          i {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            color: rgb(240, 128, 130);
-            z-index: 101;
-            cursor: pointer;
-          }
+      .wrapper {
+        position: relative;
+        border-style: dashed;
+        border-width: 1px;
+        background: rgba(255, 255, 255, 0);
+        
+        .radius {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          border-radius: 3px;
+          border: 1px solid #70c0ff;
+          z-index: 101;
+          background: #fff;
+        }
+        
+        .radius-top {
+          left: calc(50% - 3px);
+          top: -3px;
+          cursor: n-resize;
+        }
+
+        .radius-right {
+          top: calc(50% - 3px);
+          right: -3px;
+          cursor: e-resize;
+        }
+
+        .radius-bottom {
+          left: calc(50% - 3px);
+          bottom: -3px;
+          cursor: s-resize;
+        }
+
+        .radius-left {
+          top: calc(50% - 3px);
+          left: -3px;
+          cursor: w-resize;
+        }
+
+        .radius-top-left {
+          top: -3px;
+          left: -3px;
+          cursor: nw-resize;
+        }
+
+        .radius-top-right {
+          top: -3px;
+          right: -3px;
+          cursor: ne-resize;
+        }
+
+        .radius-bottom-left {
+          bottom: -3px;
+          left: -3px;
+          cursor: sw-resize;
+        }
+
+        .radius-bottom-right {
+          bottom: -3px;
+          right: -3px;
+          cursor: se-resize;
+        }
+
+        i {
+          position: absolute;
+          top: -15px;
+          right: -15px;
+          color: rgb(240, 128, 130);
+          z-index: 101;
+          cursor: pointer;
         }
       }
     }

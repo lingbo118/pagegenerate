@@ -1,8 +1,8 @@
-import testComponent1 from "./testComponent1"
+import pgButton from "./pg-button"
 import pgTable from "./pg-table"
 
 const components = [
-  testComponent1, pgTable
+  pgButton, pgTable
 ]
 
 const install = (Vue = {}) => {
