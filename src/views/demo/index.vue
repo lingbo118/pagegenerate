@@ -10,6 +10,7 @@
       title="组件栏"
       :visible.sync="showComponents"
       size="15%"
+      :sort="true"
       :wrapperClosable="true"
       direction="ltr"
       :modal="false"
@@ -26,39 +27,22 @@
       </div>
     </el-drawer>
     <div class="board-body">
-      <!-- <draggable
-        class="dragArea"
-        v-model="list2"
-        :sort="false"
-        @end="dragEndTwo"
-        @start="dragStartTwo"
-        :disabled="disabled"
-        v-if="curTab.value === 'edit'">
-        <transition-group> -->
-          <div v-for="item in list2" v-drag="item" :key="item.key" :style="componentStyle(item)" class="component_wrapper_drag" @click="editComponent(item)">
-            <div class="wrapper" :style="{ 'border-color': !item.edit ? 'rgba(255, 255, 255, 0)' : '#70c0ff' }">
-              <i class="iconfont icon-quxiao icon" v-if="item.edit" @click="removeComponent(item.key)"></i>
-              <div v-show="item.edit">
-                <div class="radius radius-top"></div>
-                <div class="radius radius-right"></div>
-                <div class="radius radius-bottom"></div>
-                <div class="radius radius-left"></div>
-                <div class="radius radius-top-left"></div>
-                <div class="radius radius-top-right"></div>
-                <div class="radius radius-bottom-left"></div>
-                <div class="radius radius-bottom-right"></div>
-              </div>
-              <component :is="item.componentName" :property="item.property"/>
-            </div>
+      <el-button @click="handlea">下载</el-button>
+      <div v-for="item in list2" v-drag="{item, curTab}" :key="item.key" :style="componentStyle(item)" class="component_wrapper_drag" @click="editComponent(item)">
+        <div class="wrapper" :style="{ 'border-color': !item.edit ? 'rgba(255, 255, 255, 0)' : '#70c0ff' }">
+          <div v-show="item.edit">
+            <div class="radius radius-top"></div>
+            <div class="radius radius-right"></div>
+            <div class="radius radius-bottom"></div>
+            <div class="radius radius-left"></div>
+            <div class="radius radius-top-left"></div>
+            <div class="radius radius-top-right"></div>
+            <div class="radius radius-bottom-left"></div>
+            <div class="radius radius-bottom-right"></div>
           </div>
-        <!-- </transition-group>
-      </draggable> -->
-
-      <!-- <div class="previewArea" v-else>
-        <div v-for="item in list2" :key="item.key" :style="componentStyle(item)" class="component_wrapper">
-          <component :is="item.componentName" :id="item.index" :property="item.property"/>
+          <component :is="item.componentName" :property="item.property"/>
         </div>
-      </div> -->
+      </div>
 
       <ToolDrawer v-model="showTool">
         <component
@@ -73,6 +57,8 @@
     <div class="open_tool" @mouseover="showTool=true" :style="{'z-index': showTool ? 2000 : 3000}" v-if="curTab.value === 'edit'">
       <i class="iconfont icon-zhankai"></i>
     </div>
+
+    <Popup @onPopupEvent="handlePopupEvent" v-model="showPopup" :style="popupStyle"/>
   </div>
 </template>
 
@@ -81,41 +67,83 @@ import draggable from "vuedraggable"
 import tabs from './components/tabs'
 import config from './config'
 import ToolDrawer from './components/toolDrawer'
-import { mapState } from "vuex";
+import Popup from './components/popup'
+import { mapState } from "vuex"
 
 export default {
   components: {
     draggable,
     tabs,
-    ToolDrawer
+    ToolDrawer,
+    Popup
   },
   directives: {
     drag: {
-      bind: function(el) {
+      bind: function(el, binding, vnode) {
         let oDiv = el
+        let index = -1
+        let begin = {}
+        let vm = vnode.context
+        let isMove = false
         oDiv.onmousedown = (e) => {
+          if (vm.curTab.value === 'preview') {
+            return
+          }
+
           // 算出鼠标相对元素的位置
           let disX = e.clientX - oDiv.offsetLeft
           let disY = e.clientY - oDiv.offsetTop
 
-          document.onmousemove = (e) => {
-            // 用鼠标的位置减去鼠标相对元素的位置，得到元素的位置
-            let left = e.clientX - disX
-            let top = e.clientY - disY
+          // 当鼠标点击伸缩点时，但会点的索引
+          index = vm.calculationPointIndex(oDiv, e)
 
-            oDiv.style.left = left + 'px'
-            oDiv.style.top = top + 'px'
+          let begin = {
+            x: e.clientX,
+            y: e.clientY,
+            top: Number(oDiv.style.top.replace('px', '')),
+            left: Number(oDiv.style.left.replace('px', '')),
+            height:  binding.value.item.property.height,
+            width:  binding.value.item.property.width
+          }
+
+          document.onmousemove = (e) => {
+            if (index > -1 && binding.value.item.edit) {
+              // 拖动元素的边框来改变大小
+              vm.changeItemBorder(index, binding.value.item, oDiv, e, begin)
+            } else {
+              // 用鼠标的位置减去鼠标相对元素的位置，得到元素的位置
+              let left = e.clientX - disX
+              let top = e.clientY - disY
+
+              oDiv.style.left = (left <= 0 ? 0 : left) + 'px'
+              oDiv.style.top = (top <= 0 ? 0 : top) + 'px'
+            }
+            isMove = true
           }
 
           document.onmouseup = (e) => {
             document.onmousemove = null
             document.onmouseup = null
+            index = -1
+
+            if (e.button == 2 && !isMove) {
+              vm.showPopup = true
+              vm.pointPosition = {
+                left: e.clientX,
+                top: e.clientY
+              }
+              vm.operatedItemKey = binding.value.item.key
+            } else {
+              isMove = false
+            }
           }
         }
       },
-      update: (el, binding) => {
-        console.log(el.style.left)
-        console.log(binding.value)
+      update: (el, binding, vnode) => {
+        let left = el.style.left.replace('px', '')
+        let top = el.style.top.replace('px', '')
+        binding.value.item.left = left
+        binding.value.item.top = top
       }
     }
   },
@@ -137,8 +165,19 @@ export default {
       showComponents: true,
       showTool: false,
       currentComponent: null,
-      disabled: false
+      disabled: false,
+      showPopup: false,
+      pointPosition: {
+        left: 0,
+        top: 0
+      },
+      operatedItemKey: ''
     }
+  },
+  mounted () {
+    // document.oncontextmenu = () => {
+    //   return false
+    // }
   },
   computed: {
     ...mapState({
@@ -156,6 +195,13 @@ export default {
 
         return style
       }
+    },
+    popupStyle () {
+      let style = ''
+      if (this.showPopup) {
+        style = `top: ${this.pointPosition.top}px; left: ${this.pointPosition.left}px`
+      }
+      return style
     }
   },
   watch: {
@@ -183,11 +229,23 @@ export default {
         this.$set(target[0], 'edit', false)
         if (target.length > 0) {
           let item = JSON.parse(JSON.stringify(target[0]))
-          this.$set(item, 'left', item.left + 50)
-          this.$set(item, 'top', item.top + 50)
+          this.$set(item, 'left', Number(item.left) + 50)
+          this.$set(item, 'top', Number(item.top) + 50)
           this.$set(item, 'edit', true)
           this.$set(item, 'key', Math.random())
           this.list2.push(item)
+        }
+      }
+    },
+    list2: {
+      deep: true,
+      handler (val) {
+        let list = val.filter(item => item.edit)
+
+        if (list.length) {
+          this.currentComponent = list[0]
+        } else {
+          this.currentComponent = null
         }
       }
     }
@@ -240,13 +298,6 @@ export default {
       this.$set(item, 'left', item.left + xMove)
       this.$set(item, 'top', item.top + yMove)
     },
-    removeComponent (key) {
-      let index = this.list2.findIndex(item => item.key === key)
-
-      if (index > -1) {
-        this.list2.splice(index, 1)
-      }
-    },
     judgeEndInRange (event) {
       let result = true
       let left = event.clientX
@@ -278,32 +329,119 @@ export default {
       })
 
       item.edit = !edit
-      this.currentComponent = item
-
-      if (!edit) {
-        let elems = document.getElementsByClassName('radius')
-        for (let elem of elems) {
-          let move = false
-          let x, y
-          elem.onmousedown = (e) => {
-            e.stopPropagation()
-            move = true
-          }
-
-          elem.onmouseup = (e) => {
-            if (move) {
-               e.stopPropagation()
-            }
-          }
-
-          elem.onmousemove = (e) => {
-            move = false
-          }
-        }
-      }
     },
     propertiesChnaged (property) {
       this.$set(this.currentComponent, 'property', JSON.parse(JSON.stringify(property)))
+    },
+    calculationPointIndex (oDiv, e) {
+      let index = -1
+
+      let points = [{
+        left: oDiv.offsetLeft,
+        top: oDiv.offsetTop + 50
+      }, {
+        left: oDiv.offsetLeft + oDiv.offsetWidth / 2,
+        top: oDiv.offsetTop + 50
+      }, {
+        left: oDiv.offsetLeft + oDiv.offsetWidth,
+        top: oDiv.offsetTop + 50
+      }, {
+        left: oDiv.offsetLeft + oDiv.offsetWidth,
+        top: oDiv.offsetTop + 50 + oDiv.offsetHeight / 2
+      }, {
+        left: oDiv.offsetLeft + oDiv.offsetWidth,
+        top: oDiv.offsetTop + 50 + oDiv.offsetHeight
+      }, {
+        left: oDiv.offsetLeft + oDiv.offsetWidth / 2,
+        top: oDiv.offsetTop + 50 + oDiv.offsetHeight
+      }, {
+        left: oDiv.offsetLeft,
+        top: oDiv.offsetTop + 50 + oDiv.offsetHeight
+      }, {
+        left: oDiv.offsetLeft,
+        top: oDiv.offsetTop + 50 + oDiv.offsetHeight / 2
+      }]
+
+      points.forEach((point, i) => {
+        let lengthX = Math.abs(e.clientX - point.left)
+        let lengthY = Math.abs(e.clientY - point.top)
+        let dis = Math.sqrt(lengthX * lengthX + lengthY * lengthY)
+
+        if (dis <= 5) {
+          index = i
+        }
+      })
+
+      return index
+    },
+    changeItemBorder (index, item, oDiv, e, begin) {
+      let changeX = e.clientX - begin.x
+      let changeY = e.clientY - begin.y
+      if (index === 0) {
+        oDiv.style.top = this.handlerLessZero(begin.top + changeY)  + 'px'
+        item.property.height = begin.height - changeY
+        oDiv.style.left = this.handlerLessZero(begin.left + changeX) + 'px'
+        item.property.width = begin.width - changeX
+      } else if (index === 1) {
+        oDiv.style.top = this.handlerLessZero(begin.top + changeY) + 'px'
+        item.property.height = begin.height - changeY
+      } else if (index === 2) {
+        oDiv.style.top = this.handlerLessZero(begin.top + changeY) + 'px'
+        item.property.height = begin.height - changeY
+        item.property.width = begin.width + changeX
+      } else if (index === 3) {
+        item.property.width = begin.width + changeX
+      } else if (index === 4) {
+        item.property.height = begin.height + changeY
+        item.property.width = begin.width + changeX
+      } else if (index === 5) {
+        item.property.height = begin.height + changeY
+      } else if (index === 6) {
+        oDiv.style.left = this.handlerLessZero(begin.left + changeX) + 'px'
+        item.property.width = begin.width - changeX
+        item.property.height = begin.height + changeY
+      } else if (index === 7) {
+        oDiv.style.left = this.handlerLessZero(begin.left + changeX) + 'px'
+        item.property.width = begin.width - changeX
+      }
+    },
+    handlerLessZero (value) {
+      return value <= 0 ? 0 : value
+    },
+    handlePopupEvent (eventName) {
+      this[eventName]()
+    },
+    handleCopy () {
+      let target = this.list2.filter(item => item.key === this.operatedItemKey)
+      if (target.length > 0) {
+        this.$set(target[0], 'edit', false)
+        let item = JSON.parse(JSON.stringify(target[0]))
+        this.$set(item, 'left', Number(item.left) + 50)
+        this.$set(item, 'top', Number(item.top) + 50)
+        this.$set(item, 'edit', true)
+        this.$set(item, 'key', Math.random())
+        this.list2.push(item)
+      }
+      this.showPopup = false
+      this.operatedItemKey = ''
+    },
+    handleDelete () {
+      let index = this.list2.findIndex(item => item.key === this.operatedItemKey)
+      if (index > -1) {
+        this.list2.splice(index, 1)
+      }
+      this.showPopup = false
+      this.operatedItemKey = ''
+    },
+    handlea () {
+      try{ 
+            var elemIF = document.createElement("iframe");   
+            elemIF.src = 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fa0.att.hudong.com%2F30%2F29%2F01300000201438121627296084016.jpg&refer=http%3A%2F%2Fa0.att.hudong.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1618136414&t=29e7010f6362b971c3869653c0c6f60f';   
+            elemIF.style.display = "none";   
+            document.body.appendChild(elemIF);   
+        }catch(e){
+          console.log(e)
+        }
     }
   }
 }

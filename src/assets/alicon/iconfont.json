@@ -97,6 +97,13 @@
       "unicode_decimal": 58940
     },
     {
+      "icon_id": "7587726",
+      "name": "复制",
+      "font_class": "fuzhi",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
       "icon_id": "8414334",
       "name": "三角形",
       "font_class": "sanjiaoxing1",

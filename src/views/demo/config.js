@@ -7,12 +7,12 @@ export default {
       icon: 'icon-anniu',
       attrComponentName: 'pgButtonAttr',
       property: {
-        width: '',
-        height: '',
+        width: 50,
+        height: 30,
         background: '#00afee',
-        fontSize: '',
+        fontSize: 12,
         color: '#000',
-        buttonName: ''
+        buttonName: '按钮'
       }
     }, {
       key: 'table',
@@ -21,8 +21,8 @@ export default {
       icon: 'icon-biaoge',
       attrComponentName: 'pgTableAttr',
       property: {
-        tableWidth: 300,
-        tableHeight: 300,
+        width: 300,
+        height: 300,
         headers: [
           { columnName: '列1', prop: 'column1', width: 100 },
           { columnName: '列2', prop: 'column2', width: 100 },

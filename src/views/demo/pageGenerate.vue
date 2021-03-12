@@ -2,7 +2,7 @@
   <div class="page_generate">
     <div v-for="item in list" :key="item.key" class="component_wrapper" :style="componentStyle(item)">
       <div class="wrapper">
-        <component :is="item.componentName" :id="item.index"/>
+        <component :is="item.componentName" :id="item.index" :property="item.property"/>
       </div>
     </div>
   </div>

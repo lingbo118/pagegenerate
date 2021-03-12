@@ -31,10 +31,10 @@
         <el-input v-model="property.api"></el-input>
       </el-form-item>
       <el-form-item label="表宽: " label-width="60px">
-        <el-input v-model="property.tableWidth"></el-input>
+        <el-input v-model="property.width"></el-input>
       </el-form-item>
       <el-form-item label="表高: " label-width="60px">
-        <el-input v-model="property.tableHeight"></el-input>
+        <el-input v-model="property.height"></el-input>
       </el-form-item>
       <el-form-item label="分页: " label-width="60px">
         <el-switch v-model="property.pagination" active-color="#13ce66" inactive-color="#ff4949"></el-switch>

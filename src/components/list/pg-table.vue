@@ -108,8 +108,8 @@ export default {
       this.api = property.api
       this.pagination = property.pagination
       this.stripe = property.stripe
-      this.width = property.tableWidth
-      this.height = property.tableHeight
+      this.width = property.width
+      this.height = property.height
     },
     handleCurrentChange (currentPage) {
       this.currentPage = currentPage
