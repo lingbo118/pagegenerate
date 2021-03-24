@@ -8,6 +8,10 @@
        :prop="column.prop"
        :min-width="column.width || 100"
        :resizable="false">
+       <template slot-scope="scope">
+         <el-input v-model="scope.row[column.prop]" v-if="isForm"></el-input>
+         <span v-else>{{ scope.row[column.prop] }}</span>
+       </template>
       </el-table-column>
     </el-table>
 
@@ -54,7 +58,8 @@ export default {
       currentPage: 0,
       api: '',
       pagination: '',
-      stripe: false
+      stripe: false,
+      isForm: false
     }
   },
   computed: {
@@ -110,6 +115,7 @@ export default {
       this.stripe = property.stripe
       this.width = property.width
       this.height = property.height
+      this.isForm = property.form
     },
     handleCurrentChange (currentPage) {
       this.currentPage = currentPage

@@ -39,6 +39,9 @@
       <el-form-item label="分页: " label-width="60px">
         <el-switch v-model="property.pagination" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
       </el-form-item>
+      <el-form-item label="字段: " label-width="60px">
+        <el-input v-model="property.field"/>
+      </el-form-item>
     </el-form>
   </div>
 </template>

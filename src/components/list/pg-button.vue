@@ -19,7 +19,6 @@ export default {
   },
   computed: {
     buttonStyle () {
-      debugger
       let obj = {
         width: this.property.width ? (this.property.width + 'px') : '',
         height: this.property.height ? (this.property.height + 'px') : '',

@@ -20,14 +20,13 @@
           <transition-group>
             <div v-for="(element) in list" :key="element.key" :style="{ color: element.color }" class="label">
               <i :class="['iconfont', element.icon]"></i>
-              <span>{{element.label}}</span>
+              <div>{{ element.label }}</div>
             </div>
           </transition-group>
         </draggable>
       </div>
     </el-drawer>
     <div class="board-body">
-      <el-button @click="handlea">下载</el-button>
       <div v-for="item in list2" v-drag="{item, curTab}" :key="item.key" :style="componentStyle(item)" class="component_wrapper_drag" @click="editComponent(item)">
         <div class="wrapper" :style="{ 'border-color': !item.edit ? 'rgba(255, 255, 255, 0)' : '#70c0ff' }">
           <div v-show="item.edit">
@@ -45,12 +44,16 @@
       </div>
 
       <ToolDrawer v-model="showTool">
+        <!-- 组件属性配置 -->
         <component
           slot="attrSetting"
-         :is="currentComponent.attrComponentName"
-         v-if="currentComponent"
-         :property="currentComponent.property"
-         @propertiesChnaged="propertiesChnaged"/>
+          :is="currentComponent.attrComponentName"
+          v-if="currentComponent"
+          :property="currentComponent.property"
+          @propertiesChnaged="propertiesChnaged"/>
+
+          <!-- 页面属性配置 -->
+         <PageAttr v-model="pageAttrProperty" slot="pageAttr"/>
       </ToolDrawer>
     </div>
 
@@ -68,6 +71,7 @@ import tabs from './components/tabs'
 import config from './config'
 import ToolDrawer from './components/toolDrawer'
 import Popup from './components/popup'
+import PageAttr from './components/pageAttr'
 import { mapState } from "vuex"
 
 export default {
@@ -75,7 +79,8 @@ export default {
     draggable,
     tabs,
     ToolDrawer,
-    Popup
+    Popup,
+    PageAttr
   },
   directives: {
     drag: {
@@ -171,13 +176,14 @@ export default {
         left: 0,
         top: 0
       },
-      operatedItemKey: ''
+      operatedItemKey: '',
+      pageAttrProperty: {}
     }
   },
   mounted () {
-    // document.oncontextmenu = () => {
-    //   return false
-    // }
+    document.oncontextmenu = () => {
+      return false
+    }
   },
   computed: {
     ...mapState({
@@ -257,7 +263,7 @@ export default {
         return
       }
       window.localStorage.setItem('pageInfo', JSON.stringify(this.list2));
-      this.$router.push('/page_generate')
+      window.open('/page_generate')
     },
     showComponentsDraw () {
       this.showComponents = true
@@ -432,16 +438,6 @@ export default {
       }
       this.showPopup = false
       this.operatedItemKey = ''
-    },
-    handlea () {
-      try{ 
-            var elemIF = document.createElement("iframe");   
-            elemIF.src = 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fa0.att.hudong.com%2F30%2F29%2F01300000201438121627296084016.jpg&refer=http%3A%2F%2Fa0.att.hudong.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1618136414&t=29e7010f6362b971c3869653c0c6f60f';   
-            elemIF.style.display = "none";   
-            document.body.appendChild(elemIF);   
-        }catch(e){
-          console.log(e)
-        }
     }
   }
 }
@@ -529,9 +525,9 @@ export default {
           cursor: move;
           background-color: #f5f8fb;
 
-          span {
+          > div {
             margin-top: 10px;
-            width: auto !important;
+            width: 100% !important;
           }
         }
         

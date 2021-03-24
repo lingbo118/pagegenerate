@@ -24,7 +24,9 @@
               </el-collapse-item>
             </el-collapse>
           </el-tab-pane>
-          <el-tab-pane label="页面" name="page">页面</el-tab-pane>
+          <el-tab-pane label="页面" name="page">
+            <slot name="pageAttr"></slot>
+          </el-tab-pane>
         </el-tabs>
         <div class="attr-setup"></div>
       </div>
